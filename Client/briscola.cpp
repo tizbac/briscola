@@ -193,8 +193,18 @@ void Briscola::HandleCommand(QStringList args)
         gamewindow->OnTableTaken(args[1].toUInt());
     }else if ( args[0] == "PID" )
     {
-        GetGame()->gameids[args[1].toUInt()] = args[2].toUInt();
+        for ( std::map<unsigned int,unsigned int>::iterator it = GetGame()->gameids.begin(); it != GetGame()->gameids.end(); it++ )
+        {
+            if ( (*it).second == args[2].toUInt())
+            {
+                std::cout << "Sostituzione giocatore "<< (*it).first << std::endl;
+                GetGame()->gameids.erase(it);
 
+                break;
+            }
+        }
+        GetGame()->gameids[args[1].toUInt()] = args[2].toUInt();
+        gamewindow->UpdatePlayers();
     }else if ( args[0] == "DN" )
     {
          GetGame()->ncarte = args[1].toUInt();
