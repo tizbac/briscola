@@ -38,11 +38,12 @@ GameWindow::GameWindow(QWidget *parent) :
     td->setInterval(2000);
     td->stop();
     connect(td,SIGNAL(timeout()),this,SLOT(delayedanim()));
+    v->setGeometry(0,0,800,600);
     v->setScene(new QGraphicsScene());
     v->setSceneRect(0,0,w,h);
 
     QGraphicsScene * scene = v->scene();
-
+    //std::cout << "W=" << v->rect().width() << " H=" << v->rect().height() << " C1=" << v->rect().left() << " C2=" << v->rect().top() << std::endl;
 
     mazzo = new QParallelAnimationGroup();
     v->show();
