@@ -128,6 +128,12 @@ public class Gioco {
 		players.add(p);
 		p.currgame = id;
 	}
+	void BroadCast(String msg)
+	{
+		for ( int i = 0; i < players.size(); i++ )
+			players.get(i).SendLine(msg);
+		
+	}
 	void RemPlayer(Player p)
 	{
 		srv.BroadCastToLoggedIn(ForgePlayerLeft(p));
@@ -142,6 +148,11 @@ public class Gioco {
 		p = new Partita(carte, giocatori_s, id,srv);
 		p.Broadcast("GS "+p.id);//Game started
 	}
+	void OnGameChat(Player pl , String msg)
+	{
+		BroadCast(String.format("GAMECHAT %d %s", pl._id,msg));
+	}
+	
 	GiocatoreBriscola GetGamePlayer(Player pl)
 	{
 		for ( int i = 0; i < players.size(); i++)

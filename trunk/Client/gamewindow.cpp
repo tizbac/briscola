@@ -16,11 +16,11 @@
 #include "gamewindow.h"
 #include "ui_gamewindow.h"
 #include "briscola.h"
-
+#include <QTime>
 #include <iostream>
 #include <QGraphicsView>
 #include <QMessageBox>
-
+#include <QScrollBar>
 GameWindow::GameWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::GameWindow)
@@ -28,9 +28,9 @@ GameWindow::GameWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::Window);
     hide();
-    v = new QGraphicsView(this);
 
-    ui->horizontalLayout_2->addWidget(v);
+
+    v = ui->graphicsView;
     w = 800;
     h = 600;
     td = new QTimer();
@@ -38,7 +38,7 @@ GameWindow::GameWindow(QWidget *parent) :
     td->setInterval(2000);
     td->stop();
     connect(td,SIGNAL(timeout()),this,SLOT(delayedanim()));
-    v->setGeometry(0,0,800,600);
+    v->setGeometry(v->x(),v->y(),800,600);
     v->setScene(new QGraphicsScene());
     v->setSceneRect(0,0,w,h);
 
@@ -78,8 +78,9 @@ GameWindow::GameWindow(QWidget *parent) :
                 abort();
         }
 #endif
-       // std::cout << carta->width() << std::endl;
+
         carta = carta.scaled(QSize(w/7,h/4),Qt::KeepAspectRatio);
+        //std::cout << carta.width() << " "<< carta.height() << std::endl;
         Pixmap * c = new Pixmap(carta,i);
 
         if ( c == 0x0 )
@@ -171,9 +172,28 @@ int pposy(unsigned int pid)
     }
     return int(edges[0].y());
 }
+void GameWindow::AppendMessage(unsigned int color, QString text, unsigned int flags)
+{
+
+    QString timestamp = QTime::currentTime().toString("[HH:mm:ss] ");
+    ui->textEdit->textCursor().movePosition(QTextCursor::End);
+    ui->textEdit->insertHtml(QString("<p><font color=#0000ff>")+Qt::escape(timestamp)+"</font> ");
+    ui->textEdit->insertHtml(QString().sprintf("<font color=#%06x>%s%s%s%s%s%s%s</font><br></p>",
+                                               color,flags & BOLD ? "<b>" : "",
+                                               flags & ITALIC ? "<i>" : "",
+                                               flags & UNDERLINE ? "<u>" : "",
+                                               text.toStdString().c_str(),
+                                               flags & BOLD ? "</b>" : "",
+                                               flags & ITALIC ? "</i>" : "",
+                                               flags & UNDERLINE ? "</u>" : ""
+                                               ));
+    QScrollBar *sb = ui->textEdit->verticalScrollBar();
+    sb->setValue(sb->maximum());
+}
 
 void GameWindow::OnGameStarted()
 {
+
     ui->pushButton->setEnabled(false);
     briscola->GetGame()->started = true;
     OnUpdate();
@@ -351,6 +371,12 @@ void GameWindow::OnGameJoin(bool ishost, Game *game)
 {
 
     show();
+    ui->textEdit->clear();
+    ui->textEdit->setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
+                          "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">"
+                          "p, li { white-space: pre-wrap; }"
+                          "</style></head><body style=\" font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;\">");
+    AppendMessage(0x007700,"Entrato nella partita",BOLD);
     ui->pushButton->setEnabled(ishost);
     for ( int i = 0; i < 40; i++ )
     {
@@ -460,4 +486,23 @@ void GameWindow::delayedanim()
         animazioni_d.pop_front();
     }
 
+}
+
+void GameWindow::on_lineEdit_editingFinished()
+{
+
+}
+void GameWindow::OnChatMessage(unsigned int player, QString message)
+{
+    QString playername = briscola->pllist->GetPlayer(player)->name;
+    AppendMessage(0x000000,Qt::escape(QString().sprintf("<%s> %s",playername.toStdString().c_str(),message.toStdString().c_str())),0);
+}
+
+void GameWindow::on_lineEdit_returnPressed()
+{
+    QString msg = ui->lineEdit->text();
+    ui->lineEdit->setText("");
+    if ( msg.trimmed().length() == 0 )
+        return;
+    briscola->sock->write((QString("GAMECHAT ")+msg+"\n").toAscii());
 }

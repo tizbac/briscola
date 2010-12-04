@@ -49,7 +49,11 @@ public:
 
     }
 };
-
+enum MessageFlags{
+    BOLD = 0x1,
+    ITALIC = 0x2,
+    UNDERLINE = 0x4
+};
 
 class GameWindow : public QMainWindow
 {
@@ -69,6 +73,8 @@ public:
     void HideCard(unsigned int index);
     void UpdatePlayers();
     void OnGameStarted();
+    void OnChatMessage(unsigned int player,QString message);
+    void AppendMessage(unsigned int color,QString text,unsigned int flags = 0x0);
     ~GameWindow();
 
 private:
@@ -82,6 +88,8 @@ private:
     QParallelAnimationGroup * mazzo;
     QGraphicsView* v;
 private slots:
+    void on_lineEdit_returnPressed();
+    void on_lineEdit_editingFinished();
     void on_GameWindow_destroyed();
     void on_pushButton_2_clicked();
     void on_pushButton_clicked();

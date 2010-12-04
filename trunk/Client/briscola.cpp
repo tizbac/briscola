@@ -60,7 +60,7 @@ while ( sock->canReadLine() )
 {
     QString line = QString(sock->readLine()).replace("\r","").replace("\n","");
     std::cerr << line.toStdString() << "-" << line.length() << std::endl;
-    QStringList args = line.split(" ");
+    QStringList args = line.split(" ",QString::KeepEmptyParts);
     if ( args.size() > 0 )
     {
         HandleCommand(args);
@@ -221,6 +221,14 @@ void Briscola::HandleCommand(QStringList args)
         QMessageBox::information(gamewindow,"Esito del gioco",res,QMessageBox::Ok,QMessageBox::NoButton);
     }else if ( args[0] == "PING" )
         sock->write(QByteArray("PONG\n"));
+     else if ( args[0] == "GAMECHAT" )
+     {
+        unsigned int playerid = args[1].toUInt();
+        args.removeFirst();
+        args.removeFirst();
+        QString txt = args.join(" ");
+        gamewindow->OnChatMessage(playerid,txt);
+     }
 
 
 }
