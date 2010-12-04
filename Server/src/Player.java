@@ -221,6 +221,15 @@ public class Player {
 				{
 					
 					
+				}else if ( cmdupper.equals("GAMECHAT") )
+				{
+					if ( currgame == -1 )
+					{
+						SendError("You are not in a game");
+						return;
+					}
+					Gioco g = srv.games.get(currgame);
+					g.OnGameChat(this, Server.join(args, " "));
 				}
 					else{
 					SendError("Command '"+command+"' does not exist! ("+args+")");

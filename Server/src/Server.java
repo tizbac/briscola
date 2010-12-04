@@ -353,4 +353,15 @@ public class Server extends Thread {
 		
 		
 	}
+	static String join(String[] s, String delimiter) {
+	     StringBuilder builder = new StringBuilder();
+	     for ( int i = 0; i < s.length; i++)
+	     {
+	    	builder.append(s[i]);
+	    	if ( i+1 != s.length )
+	    		builder.append(delimiter);
+	    	 
+	     }
+	     return builder.toString();
+	 }
 }
