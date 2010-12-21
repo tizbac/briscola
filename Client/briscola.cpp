@@ -19,6 +19,7 @@
 #include <iostream>
 #include <QCryptographicHash>
 #include <QMessageBox>
+#include <QTextCodec>
 #include "gamewindow.h"
 #include "opengamedialog.h"
 #include "dialog.h"
@@ -58,8 +59,8 @@ void Briscola::on_data_recv()
 
 while ( sock->canReadLine() )
 {
-    QString line = QString(sock->readLine()).replace("\r","").replace("\n","");
-    std::cerr << line.toStdString() << "-" << line.length() << std::endl;
+    QString line = QString::fromUtf8(sock->readLine()).replace("\r","").replace("\n","");
+    std::cerr << line.toLocal8Bit().data() << "-"<< std::endl;
     QStringList args = line.split(" ",QString::KeepEmptyParts);
     if ( args.size() > 0 )
     {
@@ -69,7 +70,6 @@ while ( sock->canReadLine() )
 
     }
 }
-    std::cout << " > on_data_recv()"<< recvbuf.toStdString() << std::endl;
 }
 void Briscola::HandleCommand(QStringList args)
 {
@@ -234,7 +234,7 @@ void Briscola::HandleCommand(QStringList args)
 }
 Game * Briscola::GetGame()
 {
-    std::cout << "GetGame() mygameid=" << mygameid << std::endl;
+    //std::cout << "GetGame() mygameid=" << mygameid << std::endl;
     return glist->id2game[mygameid];
 }
 

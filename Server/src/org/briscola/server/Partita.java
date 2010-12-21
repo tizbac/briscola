@@ -91,6 +91,7 @@ public class Partita {
 		SendNP();
 		SendPlayerChanged(plindex, newplayer);
 		SendGameIDs();
+		UpdateScore();
 		newplayer.SendLine("GS "+id);
 	}
 	public void SendUpdateHand(int plindex)
@@ -151,6 +152,13 @@ public class Partita {
 		}
 		Broadcast("DN "+mazzo.size());
 	}
+	public void UpdateScore()
+	{
+		for ( int b = 0; b < giocatori.size(); b++)
+		{
+			Broadcast("SC "+giocatori.get(b).id+" "+giocatori.get(b).punti());
+		}
+	}
 	synchronized public int eseguipresa()
 	{
 		int x = calcolapresa();// Quello che prende tutto
@@ -191,7 +199,7 @@ public class Partita {
 				
 			}
 		}
-		
+		UpdateScore();
 		if ( tot == 0 )
 		{
 			Broadcast("WON "+giocatori.get(maxgioc).pl._id);
