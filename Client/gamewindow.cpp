@@ -20,6 +20,7 @@
 #include <iostream>
 #include <QGraphicsView>
 #include <QMessageBox>
+#include <sstream>
 #include <QScrollBar>
 GameWindow::GameWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -39,23 +40,38 @@ GameWindow::GameWindow(QWidget *parent) :
     td->stop();
     connect(td,SIGNAL(timeout()),this,SLOT(delayedanim()));
     v->setGeometry(v->x(),v->y(),800,600);
-    v->setScene(new QGraphicsScene());
-    v->setSceneRect(0,0,w,h);
+    //QGraphicsRectItem * testcoord = new QGraphicsRectItem(w/7,h/4,64.0,64.0);
 
     QGraphicsScene * scene = v->scene();
-    //std::cout << "W=" << v->rect().width() << " H=" << v->rect().height() << " C1=" << v->rect().left() << " C2=" << v->rect().top() << std::endl;
-
+    if ( !scene )
+    {
+        scene = new QGraphicsScene(v);
+        scene->setSceneRect(v->sceneRect());
+        v->setScene(scene);
+    }
+   // scene->addItem(testcoord);
     mazzo = new QParallelAnimationGroup();
     v->show();
 #ifdef WIN32
-    QPixmap cartapx("carte\\retro.jpg");
+    QPixmap cartapx("carte\\retro.png");
 #else
-    QPixmap cartapx("carte/retro.jpg");
+    QPixmap cartapx("carte/retro.png");
 #endif
     cardh = cartapx.height();
     cardw = cartapx.width();
-    Pixmap * cartagi = new Pixmap(cartapx.scaled(QSize(w/7,h/4),Qt::KeepAspectRatio),-1);
-    scene->addItem(cartagi);
+    if ( cardh == 0 || cardw == 0 )
+    {
+        QMessageBox::critical(this,"Errore","Dimensione carte errata!",QMessageBox::Ok,QMessageBox::NoButton);
+        abort();
+
+    }
+   /* Pixmap * cartagi = new Pixmap(cartapx.scaled(QSize(w/7,h/4),Qt::KeepAspectRatio),-1);
+    cartagi->setOffset(0,0);
+scene->addItem(cartagi);
+    v->scale(1,1);
+    cartagi->setPos(0,0);*/
+    QGraphicsPixmapItem * cartagi = scene->addPixmap(cartapx.scaled(QSize(w/7,h/4),Qt::KeepAspectRatio));
+
     cartagi->setPos(w/7,h/4);
     //std::cout << cartagi->pixmap().width() << std::endl;
    for ( int i = 0; i < 40; i++ )
@@ -102,14 +118,15 @@ GameWindow::GameWindow(QWidget *parent) :
         mazzo->addAnimation(ani);*/
         animazioni.push_back(ani);
         AnimateCard(i,0,0,cartagi->pos().x(),cartagi->pos().y());
-
+     /*    std::stringstream ss;
+    ss << "W=" << v->sceneRect().width() << " H=" << v->sceneRect().height() << " C1=" << v->sceneRect().left() << " C2=" << v->sceneRect().top() << std::endl;
+   QMessageBox::information(this,"Debug",QString(ss.str().c_str()),QMessageBox::Ok,QMessageBox::NoButton);
+*/
     }
   //  cartagi->show();
    // scene.addItem(cartagi);
 
-    v->setCacheMode(QGraphicsView::CacheBackground);
-    v->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    v->setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+
 
 
 }
