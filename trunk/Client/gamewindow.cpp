@@ -390,9 +390,9 @@ void GameWindow::OnGameJoin(bool ishost, Game *game)
     show();
     ui->textEdit->clear();
     ui->textEdit->setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
-                          "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">"
+                          "<html><head><style type=\"text/css\">"
                           "p, li { white-space: pre-wrap; }"
-                          "</style></head><body style=\" font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;\">");
+                          "</style></head><body>");
     AppendMessage(0x007700,"Entrato nella partita",BOLD);
     ui->pushButton->setEnabled(ishost);
     for ( int i = 0; i < 40; i++ )
@@ -509,10 +509,25 @@ void GameWindow::on_lineEdit_editingFinished()
 {
 
 }
+QString htmlutf8escape(QString orig_)
+{
+    QString orig = Qt::escape(orig_);
+    QString res = "";
+    for ( int i = 0; i < orig.length(); i++)
+    {
+        if ( orig[i].unicode() > 127 )
+        {
+            res.append(QString("&#")+QString().sprintf("%u",orig[i].unicode())+QString(";"));
+        }else
+            res.append(orig[i]);
+    }
+    return res;
+}
+
 void GameWindow::OnChatMessage(unsigned int player, QString message)
 {
     QString playername = briscola->pllist->GetPlayer(player)->name;
-    AppendMessage(0x000000,Qt::escape(QString().sprintf("<%s> %s",playername.toStdString().c_str(),message.toStdString().c_str())),0);
+    AppendMessage(0x000000,htmlutf8escape(QString("<%1> %2").arg(playername,message)),0);
 }
 
 void GameWindow::on_lineEdit_returnPressed()
@@ -521,5 +536,6 @@ void GameWindow::on_lineEdit_returnPressed()
     ui->lineEdit->setText("");
     if ( msg.trimmed().length() == 0 )
         return;
-    briscola->sock->write((QString("GAMECHAT ")+msg+"\n").toAscii());
+    std::cout << "Send message: " << (QString("GAMECHAT ")+msg+"\n").toLocal8Bit().data() << std::endl;
+    briscola->sock->write((QString("GAMECHAT ")+msg+"\n").toUtf8());
 }

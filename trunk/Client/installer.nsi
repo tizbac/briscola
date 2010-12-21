@@ -1,5 +1,5 @@
 Name "Briscola"
-OutFile "Briscola_v0.1_rev5_setup.exe"
+OutFile "Briscola_v0.1_rev7_setup.exe"
 InstallDir $PROGRAMFILES\Briscola
 DirText "Il gioco di Briscola online verrà installato sul tuo pc, scegli una directory"
 Page license
@@ -58,7 +58,7 @@ Section "Client"
   File carte\7.png
   File carte\8.png
   File carte\9.png
-  File carte\retro.jpg
+  File carte\retro.png
   SetOutPath $INSTDIR
   CreateDirectory "$SMPROGRAMS\Briscola Online"
   CreateShortCut "$SMPROGRAMS\Briscola Online\Briscola.lnk" "$INSTDIR\Briscola.exe"
@@ -114,7 +114,7 @@ Section "Uninstall"
 	Delete $INSTDIR\carte\7.png
 	Delete $INSTDIR\carte\8.png
 	Delete $INSTDIR\carte\9.png
-	Delete $INSTDIR\carte\retro.jpg
+	Delete $INSTDIR\carte\retro.png
 	Delete "$SMPROGRAMS\Briscola Online\Briscola.lnk"
 	RMDir "$SMPROGRAMS\Briscola Online"
 	RMDir $INSTDIR\carte

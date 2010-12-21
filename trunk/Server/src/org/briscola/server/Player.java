@@ -27,7 +27,7 @@ public class Player {
 	private Server srv;
 	private Vector<String> sendq;
 	private Lock sendq_lock;
-	DataOutputStream out;
+	OutputStreamWriter out;
 	BufferedReader in;
 	StringBuffer recvbuf;
 	PlayerInfo info;
@@ -50,13 +50,14 @@ public class Player {
 		sendq_lock = new Lock();
 		recvbuf = new StringBuffer();
 		try {
-			out = new DataOutputStream(s.getOutputStream());
+			out = new OutputStreamWriter(s.getOutputStream(),"UTF8");
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {
-			in = new BufferedReader( new InputStreamReader(s.getInputStream()));
+			in = new BufferedReader( new InputStreamReader(s.getInputStream(),"UTF8"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -103,6 +104,7 @@ public class Player {
 		{
 			String line = recvbuf.substring(0, indx);
 			line = line.replaceAll("\r", "");
+			System.out.println("Recvd: "+line);
 			String other = recvbuf.substring(indx+1);
 			recvbuf = new StringBuffer(other);
 			String args[] = line.split(" ");
@@ -241,7 +243,8 @@ public class Player {
 		{
 			e.printStackTrace();
 			try {
-				out.writeBytes("E Server-side exception while processing your command!.\n");
+				out.write("E Server-side exception while processing your command!.\n");
+				out.flush();
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -303,7 +306,8 @@ public class Player {
 			while ( sendq.size() > 0 )
 			{
 				try {
-					out.writeBytes(sendq.get(0));
+					out.write(sendq.get(0));
+					out.flush();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -334,7 +338,8 @@ public class Player {
 	public void SendErrorFast(String error)
 	{
 		try {
-			out.writeBytes("E "+error+"\n");
+			out.write("E "+error+"\n");
+			out.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
