@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>805</width>
-    <height>675</height>
+    <height>764</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>630</y>
+      <y>730</y>
       <width>271</width>
       <height>31</height>
      </rect>
@@ -49,7 +49,7 @@
       <x>10</x>
       <y>630</y>
       <width>241</width>
-      <height>42</height>
+      <height>131</height>
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout">
@@ -86,7 +86,7 @@
    <widget class="QLabel" name="lblp">
     <property name="geometry">
      <rect>
-      <x>360</x>
+      <x>320</x>
       <y>590</y>
       <width>251</width>
       <height>31</height>
@@ -261,14 +261,25 @@
      </item>
     </layout>
    </widget>
-   <zorder>graphicsView</zorder>
+   <widget class="QTreeView" name="scorelist">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>630</y>
+      <width>261</width>
+      <height>131</height>
+     </rect>
+    </property>
+   </widget>
    <zorder>horizontalLayoutWidget</zorder>
    <zorder>formLayoutWidget</zorder>
+   <zorder>graphicsView</zorder>
+   <zorder>verticalLayoutWidget</zorder>
+   <zorder>scorelist</zorder>
    <zorder>lblp</zorder>
    <zorder>lblp_2</zorder>
-   <zorder>lblp_3</zorder>
    <zorder>lblp_4</zorder>
-   <zorder>verticalLayoutWidget</zorder>
+   <zorder>lblp_3</zorder>
   </widget>
  </widget>
  <resources/>

@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     gamelist.cpp \
     gamewindow.cpp \
     opengamedialog.cpp \
-    dialog.cpp
+    dialog.cpp \
+    scoredisplay.cpp
 
 HEADERS  += briscola.h \
     connectdialog.h \
@@ -25,7 +26,8 @@ HEADERS  += briscola.h \
     gamelist.h \
     gamewindow.h \
     opengamedialog.h \
-    dialog.h
+    dialog.h \
+    scoredisplay.h
 
 FORMS    += briscola.ui \
     connectdialog.ui \

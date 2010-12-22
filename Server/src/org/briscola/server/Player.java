@@ -255,9 +255,16 @@ public class Player {
 	}
 
 	private void HandleLogin(String[] args) {
-		if ( args.length != 2 )
+		if ( args.length < 2 )
 		{
 			SendError("Invalid login parameters");
+			return;
+		}
+		String clientversion = args.length > 2 ? args[2] : "";
+		if ( ! clientversion.equals("1") )
+		{
+			SendErrorFast("Versione del client non valida , scaricare la nuova versione da http://code.google.come/p/briscola");
+			Kill();
 			return;
 		}
 		try {

@@ -5,10 +5,30 @@
 #include <QtNetwork/QTcpSocket>
 #include "playerlist.h"
 #include "gamelist.h"
+#include <sstream>
 #include <map>
 namespace Ui {
     class Briscola;
 }
+template <typename K, typename V> inline std::string stdmaprepr(std::map<K,V> & m)
+{
+    std::stringstream ss;
+    ss << "{ ";
+    typedef std::map<K, V> maptype;
+    for ( typename maptype::iterator it = m.begin(); it != m.end(); it++)
+    {
+        if ( it != m.begin())
+            ss << ",";
+        ss << (*it).first << " : " << (*it).second;
+
+    }
+    ss << " }";
+    return ss.str();
+
+
+
+}
+
 
 class Briscola : public QMainWindow
 {

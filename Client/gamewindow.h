@@ -9,6 +9,7 @@
 #include <QParallelAnimationGroup>
 #include <QTimer>
 #include <iostream>
+#include "scoredisplay.h"
 #include "briscola.h"
 namespace Ui {
     class GameWindow;
@@ -76,7 +77,7 @@ public:
     void OnChatMessage(unsigned int player,QString message);
     void AppendMessage(unsigned int color,QString text,unsigned int flags = 0x0);
     ~GameWindow();
-
+    ScoreDisplay * score;
 private:
     Ui::GameWindow *ui;
     int h,w;

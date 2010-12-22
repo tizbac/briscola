@@ -135,11 +135,17 @@ public class Gioco {
 			players.get(i).SendLine(msg);
 		
 	}
-	void RemPlayer(Player p)
+	void RemPlayer(Player pl)
 	{
-		srv.BroadCastToLoggedIn(ForgePlayerLeft(p));
-		players.removeElement(p);
-		p.currgame = -1;
+		srv.BroadCastToLoggedIn(ForgePlayerLeft(pl));
+		players.removeElement(pl);
+		pl.currgame = -1;
+		if ( p != null )
+		{
+			p.UnLinkPlayer(pl);
+			
+			
+		}
 	}
 	void AvviaPartita()
 	{

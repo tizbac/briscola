@@ -16,36 +16,60 @@
 #include "playerlist.h"
 #include <QApplication>
 #include <iostream>
-PlayerList::PlayerList(QWidget * __parent) : QTableWidget(__parent)
+#include <QTreeView>
+PlayerList::PlayerList(QObject * __parent) : QAbstractItemModel(__parent)
 {
-    setColumnCount(3);
-    QTableWidgetItem *qtablewidgetitem4 = new QTableWidgetItem();
-    qtablewidgetitem4->setText(QApplication::translate("Briscola", "Nick", 0, QApplication::UnicodeUTF8));
-    QTableWidgetItem *qtablewidgetitem5 = new QTableWidgetItem();
-    qtablewidgetitem5->setText(QApplication::translate("Briscola", "PV", 0, QApplication::UnicodeUTF8));
-    QTableWidgetItem *qtablewidgetitem6 = new QTableWidgetItem();
-    qtablewidgetitem6->setText(QApplication::translate("Briscola", "PP", 0, QApplication::UnicodeUTF8));
-    setHorizontalHeaderItem(0,qtablewidgetitem4);
-    setHorizontalHeaderItem(1,qtablewidgetitem5);
-    setHorizontalHeaderItem(2,qtablewidgetitem6);
-    _parent = __parent;
+    qRegisterMetaType<Player*>( "Player" );
 }
 void PlayerList::Pulisci()
 {
-    clearContents();
+
     playerid2name.clear();
     name2playerid.clear();
+    playerlistindexes.clear();
+    playerlist.clear();
+    players.clear();
+    reset();
     for ( std::map<unsigned int,Player*>::iterator it = players.begin(); it != players.end(); it++)
         delete (*it).second;
-    players.clear();
-    setRowCount(0);
+
 }
+bool PlayerList::hasChildren(const QModelIndex &parent) const
+{
+    if ( parent.row() == -1)
+        return true;
+    return false;
+}
+QVariant PlayerList::data(const QModelIndex &index, int role) const
+{
+    if ( role == Qt::UserRole ) {
+        QVariant a;
+        a.setValue<Player*>(playerlist[index.row()]);
+        return a;
+     }
+      if ( role == Qt::DisplayRole ) {
+    switch ( index.column() )
+    {
+    case 0://Nick
+        return playerlist[index.row()]->name;
+    case 1://Partite vinte
+        return QString().sprintf("%d",playerlist[index.row()]->gameswon);
+    case 2://Partite perse
+        return QString().sprintf("%d",playerlist[index.row()]->gameslost);
+
+    }}
+
+    return QVariant();
+
+
+
+
+}
+
 void PlayerList::AddPlayer(unsigned int id, QString name, int gameswon, int gameslost)
 {
     if ( playerid2name.find(id) != playerid2name.end() )
         return;
-    int rowindex = rowCount();
-    setRowCount(rowCount()+1);
     Player * pl = new Player();
     pl->id = id;
     pl->name = name;
@@ -56,29 +80,76 @@ void PlayerList::AddPlayer(unsigned int id, QString name, int gameswon, int game
 
     playerid2name.insert(std::pair<unsigned int,QString>(id,name));
     name2playerid.insert(std::pair<QString,unsigned int>(name,id));
+    playerlistindexes.insert(std::pair<Player*,int>(pl,playerlist.size()));
     players.insert(std::pair<unsigned int,Player*>(id,pl));
-    QTableWidgetItem * itm = prototype->clone();
-    itm->setText(name);
-    setItem(rowindex,0,itm);
-    itm = prototype->clone();
-    itm->setText(QString().sprintf("%d",gameswon));
-    setItem(rowindex,1,itm);
-    itm = prototype->clone();
-    itm->setText(QString().sprintf("%d",gameslost));
-    setItem(rowindex,2,itm);
-    delete prototype;
+    beginInsertRows(QModelIndex(),playerlist.size(),playerlist.size());
+    playerlist.append(pl);
+    endInsertRows();
+
 }
+QVariant PlayerList::headerData(int section, Qt::Orientation orientation, int role) const
+{
+     if ( role == Qt::DisplayRole ) {
+        switch ( section ) {
+        case 0://Nick
+            return tr("Nick");
+        case 1://Partite vinte
+            return tr("Partite Vinte");
+        case 2://Partite perse
+            return tr("Partite Perse");
+        default: break;
+
+        }
+     }
+    return QVariant();
+
+}
+int PlayerList::rowCount(const QModelIndex &parent) const
+{
+    //std::cout << "rowCount( row=" << parent.row() << " col=" << parent.column() << ")" << std::endl;
+    if ( parent.row() == -1 )
+        return playerlist.size();
+    return 0;
+}
+int PlayerList::columnCount(const QModelIndex &parent) const
+{
+    return 3;
+
+}
+QModelIndex PlayerList::index(int row, int column, const QModelIndex &parent)
+             const
+ {
+     if (!hasIndex(row, column, parent))
+         return QModelIndex();
+     return createIndex(row, column);
+
+ }
+/*Qt::ItemFlags PlayerList::flags(const QModelIndex &index) const
+ {
+     if (!index.isValid())
+         return 0;
+
+     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+ }*/
+ QModelIndex PlayerList::parent( const QModelIndex& /*child*/ ) const {
+    return QModelIndex();
+ }
 void PlayerList::RemovePlayer(unsigned int id)
 {
     if ( playerid2name.find(id) == playerid2name.end() )
         return;
     QString name = playerid2name[id];
-    QList<QTableWidgetItem*> itm = findItems(name,Qt::MatchExactly);
-    removeRow(itm[0]->row());
     name2playerid.erase(name);
     playerid2name.erase(id);
-    delete players[id];
+    int index = playerlistindexes[players[id]];
+
+    beginRemoveRows(QModelIndex(),index,index);
+    playerlist.removeOne(players[id]);
+    endRemoveRows();
     players.erase(id);
+
+    playerlistindexes.erase(players[id]);
+    delete players[id];
 }
 Player * PlayerList::GetPlayer(unsigned int id)
 {
