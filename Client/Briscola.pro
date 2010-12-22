@@ -34,3 +34,18 @@ FORMS    += briscola.ui \
     gamewindow.ui \
     opengamedialog.ui \
     dialog.ui
+target.path = /usr/local/bin
+carte.path = /usr/local/share/games/Briscola/carte
+carte.files = ./carte/*
+menu.path = /usr/local/share/menu
+menu.files = ./menu/briscola
+icona.path = /usr/local/share/pixmaps
+icona.files = ./menu/briscola.xpm
+deskfile.path = /usr/local/share/applications
+deskfile.files = ./menu/briscola.desktop
+INSTALLS += carte
+INSTALLS += target
+INSTALLS += icona
+INSTALLS += menu
+INSTALLS += deskfile
+QMAKESPEC=linux-g++-32

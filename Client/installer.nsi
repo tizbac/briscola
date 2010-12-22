@@ -1,5 +1,5 @@
 Name "Briscola"
-OutFile "Briscola_v0.1_rev7_setup.exe"
+OutFile "Briscola_v0.1_rev9_setup.exe"
 InstallDir $PROGRAMFILES\Briscola
 DirText "Il gioco di Briscola online verrà installato sul tuo pc, scegli una directory"
 Page license

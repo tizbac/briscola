@@ -242,6 +242,12 @@ void Briscola::HandleCommand(QStringList args)
         int score = args[2].toInt();
         gamewindow->score->SetScore(playerid,score);
 
+     }else if ( args[0] == "UPDATEPLAYER")
+     {
+        unsigned int playerid = args[1].toUInt();
+        unsigned int won = args[2].toUInt();
+        unsigned int lost = args[3].toUInt();
+        pllist->UpdatePlayer(playerid,won,lost);
      }
 
 

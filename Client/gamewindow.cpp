@@ -22,6 +22,7 @@
 #include <QMessageBox>
 #include <sstream>
 #include <QScrollBar>
+#include <QDir>
 GameWindow::GameWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::GameWindow)
@@ -56,7 +57,14 @@ GameWindow::GameWindow(QWidget *parent) :
 #ifdef WIN32
     QPixmap cartapx("carte\\retro.png");
 #else
-    QPixmap cartapx("carte/retro.png");
+    QString path;
+    if ( QDir("/usr/share/games/Briscola").exists() )
+        path = "/usr/share/games/Briscola/carte/retro.png";
+    else if ( QDir("/usr/local/share/games/Briscola").exists() )
+        path = "/usr/local/share/games/Briscola/carte/retro.png";
+    else
+        path = "carte/retro.png";
+    QPixmap cartapx(path);
 #endif
     cardh = cartapx.height();
     cardw = cartapx.width();
@@ -87,7 +95,14 @@ scene->addItem(cartagi);
         }
 #else
 
-        QPixmap carta(QString().sprintf("carte/%d.png",i));
+        QString path;
+        if ( QDir("/usr/share/games/Briscola").exists() )
+            path = "/usr/share/games/Briscola/carte/";
+        else if ( QDir("/usr/local/share/games/Briscola").exists() )
+            path = "/usr/local/share/games/Briscola/carte/";
+        else
+            path = "carte/";
+        QPixmap carta(path+QString().sprintf("%d.png",i));
         if ( carta.isNull() )
         {
             int ch = QMessageBox::critical(this,"Errore!",QString().sprintf("Impossibile caricare carte/%d.png",i),QMessageBox::Ok,QMessageBox::Abort);
