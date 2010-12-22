@@ -1,0 +1,7 @@
+Package: briscola
+Version: 0.1.9
+Architecture: amd64
+Depends: libqt4-gui (>= 4:4.4.7.0), libqt4-network (>= 4:4.4.7.0)
+Provides: briscola
+Maintainer: Tiziano Bacocco <tizbac2@gmail.com>
+Description: Gioco online di briscola multipiattaforma

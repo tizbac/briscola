@@ -160,3 +160,13 @@ Player * PlayerList::GetPlayer(unsigned int id)
     }
     return players[id];
 }
+void PlayerList::UpdatePlayer(unsigned int id, int gameswon, int gameslost)
+{
+    Player * pl = GetPlayer(id);
+    int r = playerlistindexes[pl];
+    if (!pl)
+        return;
+    pl->gameswon = gameswon;
+    pl->gameslost = gameslost;
+    dataChanged(index(r,1),index(r,2));
+}

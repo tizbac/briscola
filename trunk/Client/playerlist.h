@@ -32,6 +32,7 @@ public:
     void Pulisci();
     bool hasChildren(const QModelIndex &parent) const;
     void AddPlayer(unsigned int id,QString name,int gameswon , int gameslost);
+    void UpdatePlayer(unsigned int id,int gameswon , int gameslost);
     void RemovePlayer(unsigned int id);
     Player * GetPlayer(unsigned int id);
 };

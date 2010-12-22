@@ -224,11 +224,12 @@ public class Partita {
 		{
 			Broadcast("WON "+giocatori.get(maxgioc).pl._id);
 			giocatori.get(maxgioc).pl.WonGame();
-		}
-		for ( int i = 0; i < giocatori.size(); i++)
-		{
-			if ( i != maxgioc && giocatori.get(i).pl != null)
-				giocatori.get(i).pl.LostGame();
+		
+			for ( int i = 0; i < giocatori.size(); i++)
+			{
+				if ( i != maxgioc && giocatori.get(i).pl != null)
+					giocatori.get(i).pl.LostGame();
+			}
 		}
 		return x;
 	}
