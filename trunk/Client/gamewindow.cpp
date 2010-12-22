@@ -29,7 +29,8 @@ GameWindow::GameWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags( Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::Window);
     hide();
-
+    score = new ScoreDisplay(this);
+    ui->scorelist->setModel(score);
 
     v = ui->graphicsView;
     w = 800;
@@ -221,7 +222,13 @@ void GameWindow::UpdateStatus()
     UpdatePlayers();
     ui->lbldn->setText(QString().sprintf("%d",briscola->GetGame()->ncarte));
     if ( briscola->GetGame()->turno >= 0 )
-        ui->lblturno->setText(briscola->pllist->GetPlayer(briscola->GetGame()->turno)->name);
+    {
+        Player * pl = briscola->pllist->GetPlayer(briscola->GetGame()->turno);
+        if (!pl)
+           ui->lblturno->setText("#Offline#");
+        else
+            ui->lblturno->setText(pl->name);
+    }
 }
 void GameWindow::UpdatePlayers()
 {
@@ -388,6 +395,7 @@ void GameWindow::OnGameJoin(bool ishost, Game *game)
 {
 
     show();
+    score->Pulisci();
     ui->textEdit->clear();
     ui->textEdit->setHtml("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">"
                           "<html><head><style type=\"text/css\">"
@@ -515,7 +523,7 @@ QString htmlutf8escape(QString orig_)
     QString res = "";
     for ( int i = 0; i < orig.length(); i++)
     {
-        if ( orig[i].unicode() > 127 )
+        if ( orig[i].unicode() > 127 )// Se il carattere è al di fuori della tabella ASCII standard è necessario fargli l'escape
         {
             res.append(QString("&#")+QString().sprintf("%u",orig[i].unicode())+QString(";"));
         }else

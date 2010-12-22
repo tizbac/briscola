@@ -68,7 +68,8 @@ public class Partita {
 	{
 		for ( int i = 0; i < giocatori.size(); i++)
 		{
-			giocatori.get(i).pl.SendLine(line);
+			if ( giocatori.get(i).pl != null )
+				giocatori.get(i).pl.SendLine(line);
 		}
 	}
 	public void Broadcastexc(String line,Player pl)
@@ -97,6 +98,8 @@ public class Partita {
 	public void SendUpdateHand(int plindex)
 	{
 		Player p = giocatori.get(plindex).pl;
+		if ( p == null )
+			return;
 		GiocatoreBriscola gioc = giocatori.get(plindex);
 		StringBuffer buf = new StringBuffer();
 		buf.append("HAND ");
@@ -125,18 +128,34 @@ public class Partita {
 	}
 	public void SendNP()//Turno
 	{
-		Broadcast("NP "+giocatori.get(turno).pl._id);
+		if ( giocatori.get(turno).pl != null ) // Il turno verrà inviato al rejoin del giocatore nel caso è null
+			Broadcast("NP "+giocatori.get(turno).pl._id);
 	}
 	public void SendTableTaken(GiocatoreBriscola gioc)
 	{
-		Broadcast("TT "+gioc.pl._id);
+		if ( gioc.pl != null )
+			Broadcast("TT "+gioc.pl._id);
+		else
+		{
+			for ( int i = 0; i < giocatori.size(); i++ )//Manda l'animazione delle carte a un giocatore qualsiasi presente
+			{
+				if ( giocatori.get(i).pl != null )
+				{
+					Broadcast("TT "+giocatori.get(i).pl._id);
+					break;
+				}
+			}
+			
+			
+		}
 	}
 	public void SendGameIDs()
 	{
 		
 		for ( int i = 0; i < giocatori.size(); i++ )
 		{
-			Broadcast("PID "+giocatori.get(i).pl._id+" "+i);
+			if ( giocatori.get(i).pl != null )
+				Broadcast("PID "+giocatori.get(i).pl._id+" "+i);
 		}
 	}
 	public void SendUpdatecardcounts()
@@ -146,7 +165,7 @@ public class Partita {
 			for ( int i = 0; i < giocatori.size(); i++)
 			{
 				int srvid = giocatori.get(i).id;
-				if ( i != b )
+				if ( i != b && giocatori.get(b).pl != null )
 					giocatori.get(b).pl.SendLine("CN "+srvid+" "+giocatori.get(i).inmano.size());
 			}
 		}
@@ -156,7 +175,8 @@ public class Partita {
 	{
 		for ( int b = 0; b < giocatori.size(); b++)
 		{
-			Broadcast("SC "+giocatori.get(b).id+" "+giocatori.get(b).punti());
+			if ( giocatori.get(b).pl != null )
+				Broadcast("SC "+giocatori.get(b).pl._id+" "+giocatori.get(b).punti());
 		}
 	}
 	synchronized public int eseguipresa()
@@ -207,7 +227,7 @@ public class Partita {
 		}
 		for ( int i = 0; i < giocatori.size(); i++)
 		{
-			if ( i != maxgioc )
+			if ( i != maxgioc && giocatori.get(i).pl != null)
 				giocatori.get(i).pl.LostGame();
 		}
 		return x;
@@ -263,5 +283,14 @@ public class Partita {
 			
 		}
 		return -1;
+	}
+	public void UnLinkPlayer(Player pl) {
+		for ( int i = 0; i < giocatori.size(); i++)
+		{
+			if ( giocatori.get(i).pl == pl )
+				giocatori.get(i).pl = null;
+		
+		}
+		
 	}
 }

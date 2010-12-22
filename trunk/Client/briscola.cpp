@@ -20,10 +20,13 @@
 #include <QCryptographicHash>
 #include <QMessageBox>
 #include <QTextCodec>
+#include <map>
 #include "gamewindow.h"
 #include "opengamedialog.h"
 #include "dialog.h"
 Briscola * briscola = NULL;
+#define BRISCOLAVERSION "1"
+
 Briscola::Briscola(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Briscola)
@@ -33,11 +36,12 @@ Briscola::Briscola(QWidget *parent) :
     glist = new GameList();
     ui->treeView->setModel(glist);
     sock = new QTcpSocket();
+    mygameid = 0;
     connect(sock,SIGNAL(readyRead()),this,SLOT(on_data_recv()));
     connect(sock,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(on_disconnected()));
     connect(sock,SIGNAL(disconnected()),this,SLOT(on_disconnected()));
     pllist = new PlayerList(this);
-    ui->verticalLayout->addWidget(pllist);
+    ui->playerlistview->setModel(pllist);
 }
 
 Briscola::~Briscola()
@@ -193,17 +197,21 @@ void Briscola::HandleCommand(QStringList args)
         gamewindow->OnTableTaken(args[1].toUInt());
     }else if ( args[0] == "PID" )
     {
+        int replacedplayer = -1;
         for ( std::map<unsigned int,unsigned int>::iterator it = GetGame()->gameids.begin(); it != GetGame()->gameids.end(); it++ )
         {
             if ( (*it).second == args[2].toUInt())
             {
                 std::cout << "Sostituzione giocatore "<< (*it).first << std::endl;
+                replacedplayer = (*it).first;
                 GetGame()->gameids.erase(it);
 
                 break;
             }
         }
         GetGame()->gameids[args[1].toUInt()] = args[2].toUInt();
+        if ( replacedplayer > -1)
+            gamewindow->score->SwapPlayer(replacedplayer,args[1].toUInt());
         gamewindow->UpdatePlayers();
     }else if ( args[0] == "DN" )
     {
@@ -228,6 +236,12 @@ void Briscola::HandleCommand(QStringList args)
         args.removeFirst();
         QString txt = args.join(" ");
         gamewindow->OnChatMessage(playerid,txt);
+     }else if ( args[0] == "SC" )
+     {
+        unsigned int playerid = args[1].toUInt();
+        int score = args[2].toInt();
+        gamewindow->score->SetScore(playerid,score);
+
      }
 
 
@@ -244,7 +258,8 @@ void Briscola::DoLogin()
     passhash.addData(password.toAscii());
     QByteArray digest = passhash.result();
     QString finalhash = QString(digest.toHex());
-    QString cmd = "LOGIN "+username+" "+finalhash+"\n";
+    QString version(BRISCOLAVERSION);
+    QString cmd = "LOGIN "+username+" "+finalhash+" "+version+"\n";
     sock->write(cmd.toAscii());
 }
 
