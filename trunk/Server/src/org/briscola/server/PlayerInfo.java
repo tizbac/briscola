@@ -14,10 +14,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package org.briscola.server;
+/**
+ * Class to hold player data required while a player is online
+ * @author Tiziano Bacocco
+ *
+ */
 public class PlayerInfo {
+	/** The count of games won since registration */
 	public int gameswon;
+	/** The count of games lost since registration */
 	public int gameslost;
+	/** The login name of the player */
 	public String nickname;
+	/** The id on the database , it will be used when saving data */
 	public int dbid;
 	PlayerInfo()
 	{

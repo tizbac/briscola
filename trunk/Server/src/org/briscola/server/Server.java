@@ -19,19 +19,39 @@ import java.net.*;
 import java.util.*;
 import java.sql.*;
 import java.util.concurrent.*;
-
+/**
+ * Class representing the whole Server instance, it handles incoming connections and global player list updates
+ * @author Tiziano Bacocco
+ *
+ */
 public class Server extends Thread {
+	/**The server socket , usually bound to port 3112 */
 	private ServerSocket mainSock;
+	/**Progressive id counter used to generate runtime-unique IDs*/
 	int idcount;
+	/**Progressive game id counter , used to generate runtime-unique game IDs*/
 	int gameidcount = 0;
+	/**
+	 * Since connections are accepted on another thread , this is required to avoid that a player is added while an update is taking place
+	 */
 	private Lock playerlistlock = new Lock();
+	/** Runnable implementation of the thread used to update Players and games */
 	UpdateThreadRunnable updth;
+	/** Thread-Safe Associative array holding ID-Player pairs */
 	private ConcurrentHashMap<Integer, Player> players;
+	/** A vector holding currently online accounts, it is used to login of already connected user */
 	private Vector<Integer> loggedinaccounts;
-	public HashMap<Integer,Gioco> games = new HashMap<Integer,Gioco>();
+	/** An associative array holding GameID-Game pairs @see Game*/
+	public HashMap<Integer,Game> games = new HashMap<Integer,Game>();
+	/** Connection to MYSQL Database , it'll be initialized later */
 	Connection conn = null;
+	/** Query used to check if password is correct and then to load all player data */
 	String loginquery = "SELECT id,nickname,gameswon,gameslost FROM players WHERE nickname = ? AND password = ? LIMIT 1";
+	/** Query used to add a new record on game history table, this data will be used later to do statistical analysis */
+	String gamehistory_add_query = "INSERT INTO history (player,playercount,won) VALUES ( ?,?,? )";
+	/** Query used to set account statistics */
 	String updateaccountquery = "UPDATE players SET gameswon = ? , gameslost = ? WHERE id = ? LIMIT 1";
+	/** Query used to keep alive connection to database server */
 	String pingquery = "SELECT 1";
 	PreparedStatement pingstat;
 	PreparedStatement loginstat;
@@ -101,6 +121,11 @@ public class Server extends Thread {
 		updth = new UpdateThreadRunnable();
 		updth.start();
 	}
+	/**
+	 * Exception raised when there's a failure removing a client
+	 * @author Tiziano Bacocco
+	 *
+	 */
 	public class RemoveClientException extends Exception
 	{
 		private int clientid;
@@ -114,6 +139,11 @@ public class Server extends Thread {
 		}
 		
 	}
+	/**
+	 * Thread used to update clients ( receive data , timeout and send data )
+	 * @author Tiziano Bacocco
+	 *
+	 */
 	public class UpdateThreadRunnable extends Thread
 	{
 
@@ -168,6 +198,9 @@ public class Server extends Thread {
 		
 		
 	}
+	/**
+	 * Entry point of the thread used to accept incoming connections
+	 */
 	public void run()
 	{
 		while ( true )
@@ -194,6 +227,12 @@ public class Server extends Thread {
 		}
 		
 	}
+	/**
+	 * Removes a player from list and notifies all authenticated clients
+	 * @param id The identifier of the client to remove
+	 * @param lock true if the operations is being done from a thread other than acceptor thread or if the lock is not already taken
+	 * @throws RemoveClientException
+	 */
 	public void RemovePlayer(int id,boolean lock) throws RemoveClientException
 	{
 		System.out.printf("Removing client %d\n", id);
@@ -234,7 +273,7 @@ public class Server extends Thread {
 					if ( games.get(players.get(id).currgame).master == players.get(id) )
 						CloseGame(players.get(id).currgame);
 					else
-						games.get(players.get(id).currgame).RemPlayer(players.get(id));
+						games.get(players.get(id).currgame).RemovePlayer(players.get(id));
 				}
 				}catch ( Exception e)
 				{
@@ -252,11 +291,24 @@ public class Server extends Thread {
 			
 		}
 	}
+	/**
+	 * Exception raised when a player is already connected
+	 * @author Tiziano Bacocco
+	 *
+	 */
 	public class AlreadyLoggedInException extends Exception
 	{
 		
 		
 	}
+	/**
+	 * Login a player to the server with provided username and password
+	 * @param pl The client to be authenticated
+	 * @param username Username of the client
+	 * @param password MD5 hash of the password
+	 * @return non-null if login succeeds
+	 * @throws AlreadyLoggedInException
+	 */
 	public PlayerInfo LoginPlayer(Player pl,String username , String password ) throws AlreadyLoggedInException
 	{
 		System.out.println("Login "+pl+" "+username+" "+password);
@@ -288,6 +340,10 @@ public class Server extends Thread {
 		}
 		return null;
 	}
+	/**
+	 * Send a command to all authenticated clients
+	 * @param line The command to be sent
+	 */
 	public void BroadCastToLoggedIn(String line)
 	{
 		Collection<Player> coll = players.values();
@@ -299,6 +355,10 @@ public class Server extends Thread {
 				pl.SendLine(line);
 		}
 	}
+	/**
+	 * Send a command to all ( non authenticated too ) clients
+	 * @param line The command to be sent
+	 */
 	public void BroadCastToAll(String line)
 	{
 		Collection<Player> coll = players.values();
@@ -309,6 +369,10 @@ public class Server extends Thread {
 			pl.SendLine(line);
 		}
 	}
+	/**
+	 * Send current player and game lists to a new client that just authenticated
+	 * @param player Player that needs initial sync
+	 */
 	public void SendState(Player player) {
 		Collection<Player> coll = players.values();
 		Iterator<Player> itr = coll.iterator();
@@ -320,15 +384,21 @@ public class Server extends Thread {
 				player.SendLine(String.format("ADDPLAYER %d %s %d %d",pl._id,pl.info.nickname,pl.info.gameswon,pl.info.gameslost));
 			}
 		}
-		Collection<Gioco> coll2 = games.values();
-		Iterator<Gioco> itr2 = coll2.iterator();
+		Collection<Game> coll2 = games.values();
+		Iterator<Game> itr2 = coll2.iterator();
 		while(itr2.hasNext())
 		{
-			Gioco g = itr2.next();
+			Game g = itr2.next();
 			g.SendCurrentState(player);
 		}
 		
 	}
+	/**
+	 * Try to open a game with a master
+	 * @param master The player who creates the game, if he disconnects , the game will close
+	 * @param numplayers can be 2 or 4 for now
+	 * @param desc The title of the game , provided by client
+	 */
 	public void OpenGame(Player master,int numplayers,String desc)
 	{
 		if (master.currgame != -1)
@@ -342,9 +412,13 @@ public class Server extends Thread {
 			master.SendError("Invalid player count!");
 			return;
 		}
-		games.put(gameidcount,new Gioco(this,master,numplayers,gameidcount,desc));
+		games.put(gameidcount,new Game(this,master,numplayers,gameidcount,desc));
 		master.currgame = gameidcount;
 	}
+	/**
+	 * Close an existing game
+	 * @param id The identifier of the game to close
+	 */
 	public void CloseGame(int id)
 	{
 		BroadCastToLoggedIn(games.get(id).ForgeGameClosed());
@@ -354,6 +428,12 @@ public class Server extends Thread {
 		
 		
 	}
+	/**
+	 * General purpose function that takes an array and concatenates the elements putting the specified separator between them
+	 * @param s The string array to concatenate
+	 * @param delimiter The delimiter to but between elements
+	 * @return The resulting string after concatenation
+	 */
 	static String join(String[] s, String delimiter) {
 	     StringBuilder builder = new StringBuilder();
 	     for ( int i = 0; i < s.length; i++)
