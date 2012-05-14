@@ -34,6 +34,12 @@ public class Player {
 	int currgame = -1;
 	int sendpingtimer = 20000;
 	long lastpacket = System.currentTimeMillis();
+	/**
+	 *  Creates a player
+	 * @param sock The socket connected to the client
+	 * @param id The identifier to assign to the player , must be unique on runtime
+	 * @param srv_ The server instance
+	 */
 	Player(Socket sock,int id,Server srv_)
 	{
 		s = sock;
@@ -64,6 +70,11 @@ public class Player {
 		}
 		SendLine("BSRV v0.1");
 	}
+	/**
+	 * Updates the player
+	 * This method flushes the send queue, receives incoming data from client , checks for timeout and if timeout occurred it kills the connection
+	 * @param diff The time since last tick , in milliseconds
+	 */
 	public void Update(int diff)
 	{
 		Flush();
@@ -78,10 +89,15 @@ public class Player {
 		if ( System.currentTimeMillis() - lastpacket > 40000 )
 			Kill();
 	}
+	/**
+	 * Try to read data from socket and stop when timeout occurs, timeout is set to 1 ms so it won't block much
+	 * TODO: Needs use of socket polling using NIO
+	 */
 	private void ReceiveData()
 	{
 		char buffer[] = new char[1024];
 		int bytesread = -1;
+		
 		try {
 			bytesread = in.read(buffer);
 		}catch ( SocketTimeoutException e ) {
@@ -126,6 +142,11 @@ public class Player {
 			recvbuf = new StringBuffer(other);
 		}
 	}
+	/**
+	 * Called when a command has been received
+	 * @param command The name of the command
+	 * @param args The array containing the parameters
+	 */
 	public void HandleCommand(String command , String[] args)
 	{
 		lastpacket = System.currentTimeMillis();
@@ -152,11 +173,11 @@ public class Player {
 				}else if ( cmdupper.equals("LG" ) ) // Leave game [id]
 				{
 					int gid = Integer.parseInt(args[0]);
-					Gioco g = srv.games.get(gid);
+					Game g = srv.games.get(gid);
 					if ( g.master == this )
 						srv.CloseGame(gid);
 					else
-						g.RemPlayer(this);
+						g.RemovePlayer(this);
 				}else if ( cmdupper.equals("JG" ) ) // Join game [id]
 				{
 					if ( currgame != -1 )
@@ -165,9 +186,9 @@ public class Player {
 						return;
 					}
 					int gid = Integer.parseInt(args[0]);
-					Gioco g = srv.games.get(gid);
+					Game g = srv.games.get(gid);
 					if ( g.players.size() < g.numplayers )
-						if ( g.avviato == false )
+						if ( g.started == false )
 							g.AddPlayer(this);
 						else
 							g.p.ReplacePlayer(g.p.GetFirstEmptySlot(), this);
@@ -181,7 +202,7 @@ public class Player {
 						SendError("You are not in a game");
 						return;
 					}
-					Gioco g = srv.games.get(currgame);
+					Game g = srv.games.get(currgame);
 					if ( g.master != this )
 					{
 						SendError("You are not the game host");
@@ -193,7 +214,7 @@ public class Player {
 						return;
 					}
 					if ( g.players.size() == g.numplayers )
-						g.AvviaPartita();
+						g.StartGame();
 					else
 						SendError("No enough players to start game");
 				}else if ( cmdupper.equals("TC")) // Take card from deck
@@ -203,20 +224,20 @@ public class Player {
 						SendError("You are not in a game");
 						return;
 					}
-					Gioco g = srv.games.get(currgame);
-					GiocatoreBriscola gioc = g.GetGamePlayer(this);
-					gioc.pescacarta();
+					Game g = srv.games.get(currgame);
+					BriscolaPlayer gioc = g.GetGamePlayer(this);
+					gioc.drawcard();
 				}else if ( cmdupper.equals("UC")){ //Use card
 					if ( currgame == -1 )
 					{
 						SendError("You are not in a game");
 						return;
 					}
-					Gioco g = srv.games.get(currgame);
-					GiocatoreBriscola gioc = g.GetGamePlayer(this);
+					Game g = srv.games.get(currgame);
+					BriscolaPlayer gioc = g.GetGamePlayer(this);
 					try{
-						gioc.butta(Integer.parseInt(args[0]));
-					}catch ( GiocatoreBriscola.ActionNotPermittedException e )
+						gioc.throw_card(Integer.parseInt(args[0]));
+					}catch ( BriscolaPlayer.ActionNotPermittedException e )
 					{
 						SendError("Action not allowed!");
 					}
@@ -231,7 +252,7 @@ public class Player {
 						SendError("You are not in a game");
 						return;
 					}
-					Gioco g = srv.games.get(currgame);
+					Game g = srv.games.get(currgame);
 					g.OnGameChat(this, Server.join(args, " "));
 				}
 					else{
@@ -253,7 +274,10 @@ public class Player {
 
 		}
 	}
-
+	/**
+	 * Handles LOGIN command
+	 * @param args
+	 */
 	private void HandleLogin(String[] args) {
 		if ( args.length < 2 )
 		{
@@ -284,6 +308,9 @@ public class Player {
 			srv.SendState(this);
 		}
 	}
+	/**
+	 * Forcibly removes this client from the server
+	 */
 	public void Kill()
 	{
 		System.out.println("Killing client "+_id);
@@ -301,6 +328,10 @@ public class Player {
 		}
 
 	}
+	/**
+	 * Try to send all messages on the send queue
+	 * TODO: Needs use of NIO to avoid possible blocking operations
+	 */
 	private void Flush() 
 	{
 		try {
@@ -327,6 +358,10 @@ public class Player {
 			sendq_lock.unlock();
 		}
 	}
+	/**
+	 * Sends a command to this client
+	 * @param line The command to be sent
+	 */
 	public void SendLine(String line)
 	{
 		try {
@@ -338,10 +373,18 @@ public class Player {
 		sendq.add(line+"\n");
 		sendq_lock.unlock();
 	}
+	/**
+	 * Sends an error message to the client
+	 * @param error The message
+	 */
 	public void SendError(String error)
 	{
 		SendLine("E "+error);
 	}
+	/**
+	 * Sends an error message to the client without respecting send queue, used when forcing disconnect
+	 * @param error The message
+	 */
 	public void SendErrorFast(String error)
 	{
 		try {
@@ -352,10 +395,17 @@ public class Player {
 			e.printStackTrace();
 		}
 	}
+	/**
+	 * Called when the player just won a game, it updates stats on other clients
+	 */
 	public void WonGame() {
 		info.gameswon++;
 		srv.BroadCastToLoggedIn("UPDATEPLAYER "+_id+" "+info.gameswon+" "+info.gameslost);
+		
 	}
+	/**
+	 * Called when the player just lost a game, it updates stats on other clients
+	 */
 	public void LostGame() {
 		info.gameslost++;
 		srv.BroadCastToLoggedIn("UPDATEPLAYER "+_id+" "+info.gameswon+" "+info.gameslost);

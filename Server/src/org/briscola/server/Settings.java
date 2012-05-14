@@ -27,13 +27,27 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+/**
+ * This class is used as an interface to load XML settings file
+ * @author Tiziano Bacocco
+ *
+ */
 public class Settings {
+	/** Database host */
 	public String host;
+	/** Database user */
 	public String username;
+	/** Database password */
 	public String password;
+	/** Database name */
 	public String database;
+	/** The TCP/IP port to bind to */
 	public int bindport;
+	/** The address used to listen for incoming connection , 0.0.0.0 or "" to listen on all interfaces/addresses */
 	public String bindaddress;
+	/**
+	 * Load settings.xml
+	 */
 	public Settings() {
 		File f = new File("settings.xml");
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
