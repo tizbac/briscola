@@ -397,17 +397,24 @@ public class Player {
 	}
 	/**
 	 * Called when the player just won a game, it updates stats on other clients
+	 * @param match The match where the player won
+	 * @param i 
 	 */
-	public void WonGame() {
+	public void WonGame(Match match, int points) {
 		info.gameswon++;
 		srv.BroadCastToLoggedIn("UPDATEPLAYER "+_id+" "+info.gameswon+" "+info.gameslost);
+		int np = srv.games.get(currgame).numplayers;
+		srv.AddHistory(this, np, false, points);
 		
 	}
 	/**
 	 * Called when the player just lost a game, it updates stats on other clients
+	 * @param match The match where the player lost
 	 */
-	public void LostGame() {
+	public void LostGame(Match match, int points) {
 		info.gameslost++;
 		srv.BroadCastToLoggedIn("UPDATEPLAYER "+_id+" "+info.gameswon+" "+info.gameslost);
+		int np = srv.games.get(currgame).numplayers;
+		srv.AddHistory(this, np, true, points);
 	}
 }
