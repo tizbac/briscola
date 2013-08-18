@@ -48,7 +48,7 @@ public class Server extends Thread {
 	/** Query used to check if password is correct and then to load all player data */
 	String loginquery = "SELECT id,nickname,gameswon,gameslost FROM players WHERE nickname = ? AND password = ? LIMIT 1";
 	/** Query used to add a new record on game history table, this data will be used later to do statistical analysis */
-	String gamehistory_add_query = "INSERT INTO history (player,playercount,won) VALUES ( ?,?,? )";
+	String gamehistory_add_query = "INSERT INTO history (player,playercount,won,points) VALUES ( ?,?,?,?)";
 	/** Query used to set account statistics */
 	String updateaccountquery = "UPDATE players SET gameswon = ? , gameslost = ? WHERE id = ? LIMIT 1";
 	/** Query used to keep alive connection to database server */
@@ -56,6 +56,7 @@ public class Server extends Thread {
 	PreparedStatement pingstat;
 	PreparedStatement loginstat;
 	PreparedStatement updatestat;
+	PreparedStatement historystat;
 	int pingtimer = 100;
 	Server()
 	{
@@ -301,6 +302,21 @@ public class Server extends Thread {
 		
 		
 	}
+	public void AddHistory(Player pl,int players, boolean won, int points)
+	{
+		try {
+			historystat.setLong(1, pl.info.dbid);
+			historystat.setLong(2, players);
+			historystat.setBoolean(3, won);
+			historystat.setLong(4, points);
+			historystat.execute();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 	/**
 	 * Login a player to the server with provided username and password
 	 * @param pl The client to be authenticated
