@@ -78,10 +78,11 @@ QModelIndex ScoreDisplay::parent( const QModelIndex& /*child*/ ) const {
 }
 void ScoreDisplay::Pulisci()
 {
+    beginResetModel();
     players.clear();
     player_row.clear();
     score.clear();
-    reset();
+    endResetModel();
 }
 void ScoreDisplay::SetScore(unsigned int playerid, int p_score)
 {

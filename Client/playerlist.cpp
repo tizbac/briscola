@@ -23,13 +23,13 @@ PlayerList::PlayerList(QObject * __parent) : QAbstractItemModel(__parent)
 }
 void PlayerList::Pulisci()
 {
-
+    beginResetModel();
     playerid2name.clear();
     name2playerid.clear();
     playerlistindexes.clear();
     playerlist.clear();
     players.clear();
-    reset();
+    endResetModel();
     for ( std::map<unsigned int,Player*>::iterator it = players.begin(); it != players.end(); it++)
         delete (*it).second;
 

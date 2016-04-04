@@ -20,7 +20,7 @@ void OpenGameDialog::on_buttonBox_accepted()
     hide();
     unsigned int players = ui->comboBox->currentText().toUInt();
     QString desc = ui->lineEdit->text();
-    briscola->sock->write((QString()+"OG "+QString().sprintf("%d",players)+" "+desc+"\n").toAscii());
+    briscola->sock->write((QString()+"OG "+QString().sprintf("%d",players)+" "+desc+"\n").toLatin1());
 }
 
 void OpenGameDialog::on_buttonBox_rejected()

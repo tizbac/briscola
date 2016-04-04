@@ -210,7 +210,7 @@ void GameWindow::AppendMessage(unsigned int color, QString text, unsigned int fl
 
     QString timestamp = QTime::currentTime().toString("[HH:mm:ss] ");
     ui->textEdit->textCursor().movePosition(QTextCursor::End);
-    ui->textEdit->insertHtml(QString("<p><font color=#0000ff>")+Qt::escape(timestamp)+"</font> ");
+    ui->textEdit->insertHtml(QString("<p><font color=#0000ff>")+timestamp.toHtmlEscaped()+"</font> ");
     ui->textEdit->insertHtml(QString().sprintf("<font color=#%06x>%s%s%s%s%s%s%s</font><br></p>",
                                                color,flags & BOLD ? "<b>" : "",
                                                flags & ITALIC ? "<i>" : "",
@@ -506,12 +506,12 @@ GameWindow::~GameWindow()
 
 void GameWindow::on_pushButton_clicked()
 {
-    briscola->sock->write(QString().sprintf("START\n").toAscii());
+    briscola->sock->write(QString().sprintf("START\n").toLatin1());
 }
 
 void GameWindow::on_pushButton_2_clicked()
 {
-    briscola->sock->write(QString().sprintf("LG %d\n",briscola->mygameid).toAscii());
+    briscola->sock->write(QString().sprintf("LG %d\n",briscola->mygameid).toLatin1());
 }
 
 void GameWindow::on_GameWindow_destroyed()
@@ -534,7 +534,7 @@ void GameWindow::on_lineEdit_editingFinished()
 }
 QString htmlutf8escape(QString orig_)
 {
-    QString orig = Qt::escape(orig_);
+    QString orig = orig_.toHtmlEscaped();
     QString res = "";
     for ( int i = 0; i < orig.length(); i++)
     {

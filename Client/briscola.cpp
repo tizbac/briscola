@@ -260,13 +260,13 @@ Game * Briscola::GetGame()
 
 void Briscola::DoLogin()
 {
-    QCryptographicHash passhash(QCryptographicHash::Md5);
+    /*QCryptographicHash passhash(QCryptographicHash::Md5);
     passhash.addData(password.toAscii());
-    QByteArray digest = passhash.result();
-    QString finalhash = QString(digest.toHex());
+    QByteArray digest = passhash.result();*/
+    QString finalhash = password.toLatin1();
     QString version(BRISCOLAVERSION);
     QString cmd = "LOGIN "+username+" "+finalhash+" "+version+"\n";
-    sock->write(cmd.toAscii());
+    sock->write(cmd.toLatin1());
 }
 
 void Briscola::on_disconnected()
@@ -285,7 +285,7 @@ void Briscola::on_actionDisconnect_triggered()
 void Briscola::on_treeView_activated(QModelIndex index)
 {
     unsigned int gameid = glist->games[index.row()]->id;
-    sock->write(QString().sprintf("JG %d\n",gameid).toAscii());
+    sock->write(QString().sprintf("JG %d\n",gameid).toLatin1());
 }
 
 void Briscola::on_actionCrea_partita_triggered()

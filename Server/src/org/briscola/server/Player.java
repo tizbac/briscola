@@ -120,7 +120,7 @@ public class Player {
 		{
 			String line = recvbuf.substring(0, indx);
 			line = line.replaceAll("\r", "");
-			System.out.println("Recvd: "+line);
+			//System.out.println("Recvd: "+line);
 			String other = recvbuf.substring(indx+1);
 			recvbuf = new StringBuffer(other);
 			String args[] = line.split(" ");
@@ -152,8 +152,8 @@ public class Player {
 		lastpacket = System.currentTimeMillis();
 		try{
 			String cmdupper = command.toUpperCase();
-			System.out.printf("CMD: %s %d \n", command,command.length());
-			System.out.flush();
+			//System.out.printf("CMD: %s %d \n", command,command.length());
+			//System.out.flush();
 			if ( info == null )
 			{
 				if ( cmdupper.equals("LOGIN") )

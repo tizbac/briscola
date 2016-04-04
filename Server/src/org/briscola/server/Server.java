@@ -46,7 +46,7 @@ public class Server extends Thread {
 	/** Connection to MYSQL Database , it'll be initialized later */
 	Connection conn = null;
 	/** Query used to check if password is correct and then to load all player data */
-	String loginquery = "SELECT id,nickname,gameswon,gameslost FROM players WHERE nickname = ? AND password = ? LIMIT 1";
+	String loginquery = "SELECT ID,user_login,user_pass FROM wp_users WHERE user_login = ? LIMIT 1";
 	/** Query used to add a new record on game history table, this data will be used later to do statistical analysis */
 	String gamehistory_add_query = "INSERT INTO history (player,playercount,won,points) VALUES ( ?,?,?,?)";
 	/** Query used to set account statistics */
@@ -78,17 +78,18 @@ public class Server extends Thread {
 		}
 		try {
 			String url = String.format("jdbc:mysql://%s/%s", setts.host,setts.database);
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/briscola",setts.username,setts.password);
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/"+setts.database,setts.username,setts.password);
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
+			e1.printStackTrace();
 			System.err.println("Cannot connect to database.\n");
 			System.exit(1);
 			
-			e1.printStackTrace();
+
 		}
 		try {
 			loginstat = conn.prepareStatement(loginquery);
-			updatestat = conn.prepareStatement(updateaccountquery);
+			//updatestat = conn.prepareStatement(updateaccountquery);
 			pingstat = conn.prepareStatement(pingquery);
 		} catch (SQLException e2) {
 			// TODO Auto-generated catch block
@@ -258,7 +259,7 @@ public class Server extends Thread {
 			if ( players.get(id).info != null)
 			{
 				sendlogout = true;
-				try {
+				/*try {
 					updatestat.setInt(1, players.get(id).info.gameswon );
 					updatestat.setInt(2, players.get(id).info.gameslost );
 					updatestat.setInt(3, players.get(id).info.dbid );
@@ -266,7 +267,7 @@ public class Server extends Thread {
 				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
-				}
+				}*/
 				loggedinaccounts.removeElement(players.get(id).info.dbid);
 				try{
 				if ( players.get(id).currgame != -1 )
@@ -327,20 +328,24 @@ public class Server extends Thread {
 	 */
 	public PlayerInfo LoginPlayer(Player pl,String username , String password ) throws AlreadyLoggedInException
 	{
-		System.out.println("Login "+pl+" "+username+" "+password);
+		//System.out.println("Login "+pl+" "+username+" "+password);
 		try {
 			loginstat.setString(1, username);
-			loginstat.setString(2, password);
 			ResultSet R = loginstat.executeQuery();
 			if (!R.next())
 				return null;
 			else
 			{
+				String passhash = R.getString("user_pass");
+				PasswordHasher ph = new PasswordHasher();
+				System.out.println("Check against "+passhash);
+				if ( !ph.isMatch(password, passhash) )
+					return null;
 				PlayerInfo info = new PlayerInfo();
-				info.nickname = R.getString(2);
-				info.gameswon = R.getInt(3);
-				info.gameslost = R.getInt(4);
-				info.dbid = R.getInt(1);
+				info.nickname = R.getString("user_login");
+				info.gameswon = 0;
+				info.gameslost = 0;
+				info.dbid = R.getInt("ID");
 				if ( !loggedinaccounts.contains(info.dbid))
 				{
 					loggedinaccounts.add(info.dbid);

@@ -39,7 +39,7 @@ public:
                 {
                     if ( cid == g->hand[i] )
                     {
-                        briscola->sock->write(QString().sprintf("UC %d\n",i).toAscii());
+                        briscola->sock->write(QString().sprintf("UC %d\n",i).toLatin1());
                         break;
                     }
 
